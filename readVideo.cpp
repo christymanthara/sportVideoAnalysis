@@ -19,16 +19,18 @@ using namespace cv;
 int main()
 {
 	
-	string path = "Resources/sport1.mp4";
+	string path = "Resources/cutvideo.mp4";
 	VideoCapture cap(path);
-	Mat img, imgsaved, imgHsv, rangeMask,rangeMask3C, final, finalBgr, finalGray, tmask1, cfinal;
-	
+	Mat img, imgsaved, imgHsv, rangeMask,rangeMask3C, final, finalBgr, finalGray, tmask1, cfinal, cimg, invertedMask;
+	vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+    vector<Rect> boundRect( contours.size() );
     //converting the video to image frames and displaying them
 	while(true) {
 	
 	
 		cap.read(img); //passing the video to the img variable
-		resize(img, img, Size(img.cols/2, img.rows/2)); // resized the video to smaller resolutions
+		// resize(img, img, Size(img.cols/2, img.rows/2)); // resized the video to smaller resolutions
 		
         imgsaved = img;
 
@@ -59,7 +61,41 @@ int main()
 
         namedWindow("HSV ImageMask", WINDOW_NORMAL);
 		imshow("HSV ImageMask", rangeMask);
+//__________________________________________________________________________________________________---------------------------------------------------
+        //the section for detecting the field
+        // create  a black colored image with the same size and type of the input image
+        // Mat bnw = zeros(img.size(),img.type()); 
+        
+        
+        // applying canny edge detector to remove the lines on the field and other straight lines in the frames.
+        // Canny(rangeMask, rangeMask, 50, 200, 3);
+        // //creating a new image with the output of the canny detector
+        // cvtColor(rangeMask, cimg, COLOR_GRAY2BGR);
 
+        // namedWindow("Canny", WINDOW_NORMAL);
+		// imshow("Canny", rangeMask);
+        
+
+        // vector<Vec4i> linesP; // will hold the results of the detection
+        // HoughLinesP(rangeMask, linesP, 1, CV_PI/180, 150, 0, 50 ); 
+
+
+        // for( size_t i = 0; i < linesP.size(); i++ )
+        // {
+        //     Vec4i l = linesP[i];
+        //     line( cimg, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255), 2, LINE_AA);
+        // }
+
+        // imshow("Detected Lines (in red) - Probabilistic Line Transform", cimg);
+
+
+        // Mat invertedMask;
+        // bitwise_not(cimg, invertedMask);
+
+        // checkGreyScale(rangeMask);
+
+        //------------------------------------------------------------------------------------------------------------
+        // img.copyTo(rangeMask, invertedMask);
         cvtColor(rangeMask, rangeMask3C, COLOR_GRAY2BGR); 
 
         bitwise_and(img, rangeMask3C, final, rangeMask);
@@ -77,7 +113,7 @@ int main()
 		imshow("BGR to Gray", finalGray);
 
         // create the kernel for threshholding
-        Mat kernel = getStructuringElement(MORPH_RECT, Size(9,9));
+        Mat kernel = getStructuringElement(MORPH_RECT, Size(11,11));
 
         threshold(finalGray, tmask1 , 127, 225, THRESH_BINARY_INV | THRESH_OTSU);
 
@@ -93,29 +129,27 @@ int main()
         
         // we use the find contours
 
+        findContours(tmask1, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+         //return the number of contours
+        //  cout<<contours.size();
+         vector<vector<Point> > contours_poly( contours.size() );
 
-        getContours(tmask1,tmask1);
+        // Rect r = cv::boundingRect(contours[0]);
 
-        namedWindow("Contour Image", WINDOW_NORMAL);
-		imshow("Contour Image", tmask1);
-        
-        Mat mask = tmask1;
-        Mat colormask;
-        //changing the mask to 3 channel
-        cvtColor(tmask1, colormask, COLOR_GRAY2BGR); 
+        //find the bounding rectangles of each contours in the image
+        for(int i = 0; i<contours.size(); i++) // the sizes of the contours range from 0 to n-1
+        {   float width = boundingRect(contours[i]).width;
+            float height = boundingRect(contours[i]).height;
+            // now we check if the width is less than the height
+            if(height > 1.1*width)
+            {
+            rectangle(imgsaved, boundingRect(contours[i]), Scalar(255,0,0),5);
+            }
+        }
 
-        namedWindow("Colored Mask", WINDOW_NORMAL);
-		imshow("Colored Mask", colormask);
-
-    
-
-        namedWindow("imgsaved", WINDOW_NORMAL);
-		imshow("imgsaved", imgsaved);
-        
-
-        bitwise_and(imgsaved, colormask, cfinal, mask);
-        namedWindow("final out", WINDOW_NORMAL);
-		imshow("final out", cfinal);
+        namedWindow("trial", WINDOW_NORMAL);
+		imshow("trial", imgsaved);
+        	
 
 		waitKey(1);
 		//cap.release();
