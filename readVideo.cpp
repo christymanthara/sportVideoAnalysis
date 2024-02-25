@@ -1,3 +1,7 @@
+//Author: Christy Jo Manthara
+//reg no: 2080644
+//christyjo.manthara@studenti.unipd.it   /    metalliccj@gmail.com  / christyj150@gmail.com
+
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -34,6 +38,15 @@ int main()
         cvtColor(img, imgHsv, COLOR_BGR2HSV); 
         namedWindow("HSV Image", WINDOW_NORMAL);
 		imshow("HSV Image", imgHsv);
+
+
+        //to identify the ground/playing field we are going to detect the green color
+        // now we define the color ranges for green
+
+        // Define color ranges
+        Scalar lower_green(40, 40, 40);
+        Scalar upper_green(70, 255, 255); 
+
 
 		waitKey(1);
 		//cap.release();
