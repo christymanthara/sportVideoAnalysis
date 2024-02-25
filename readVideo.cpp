@@ -17,7 +17,7 @@ int main()
 	
 	string path = "Resources/sport1.mp4";
 	VideoCapture cap(path);
-	Mat img, imgHsv;
+	Mat img, imgHsv, rangeMask,rangeMask3C, final, finalBgr;
 	
     //converting the video to image frames and displaying them
 	while(true) {
@@ -47,6 +47,33 @@ int main()
         Scalar lower_green(40, 40, 40);
         Scalar upper_green(70, 255, 255); 
 
+        // create mask using the color range defined
+        inRange(imgHsv, lower_green, upper_green, rangeMask);
+
+
+
+        namedWindow("HSV ImageMask", WINDOW_NORMAL);
+		imshow("HSV ImageMask", rangeMask);
+
+        cvtColor(rangeMask, rangeMask3C, COLOR_GRAY2BGR); 
+
+        bitwise_and(img, rangeMask3C, final, rangeMask);
+        namedWindow("Green Masked", WINDOW_NORMAL);
+		imshow("Green Masked", final);
+
+        // now we convert hsv to bgr to gray 
+
+        cvtColor(final,finalBgr, COLOR_HSV2BGR); 
+        namedWindow("Green Masked to BGR", WINDOW_NORMAL);
+		imshow("Green Masked to BGR", finalBgr);
+
+        cvtColor(finalBgr,final, COLOR_BGR2GRAY);
+        namedWindow("BGR to Gray", WINDOW_NORMAL);
+		imshow("BGR to Gray", final);
+
+        // bitwise_or(img, finalBgr, final, final);
+        // namedWindow("Masked again", WINDOW_NORMAL);
+		// imshow("Masked again", final);
 
 		waitKey(1);
 		//cap.release();
