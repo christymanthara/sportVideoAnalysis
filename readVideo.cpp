@@ -17,7 +17,7 @@ int main()
 	
 	string path = "Resources/sport1.mp4";
 	VideoCapture cap(path);
-	Mat img, imgHsv, rangeMask,rangeMask3C, final, finalBgr;
+	Mat img, imgHsv, rangeMask,rangeMask3C, final, finalBgr, finalGray, tmask1;
 	
     //converting the video to image frames and displaying them
 	while(true) {
@@ -67,13 +67,18 @@ int main()
         namedWindow("Green Masked to BGR", WINDOW_NORMAL);
 		imshow("Green Masked to BGR", finalBgr);
 
-        cvtColor(finalBgr,final, COLOR_BGR2GRAY);
+        cvtColor(finalBgr,finalGray, COLOR_BGR2GRAY);
         namedWindow("BGR to Gray", WINDOW_NORMAL);
-		imshow("BGR to Gray", final);
+		imshow("BGR to Gray", finalGray);
 
-        // bitwise_or(img, finalBgr, final, final);
-        // namedWindow("Masked again", WINDOW_NORMAL);
-		// imshow("Masked again", final);
+        // create the kernel for threshholding
+        Mat kernel = getStructuringElement(MORPH_RECT, Size(13,13));
+
+        threshold(finalGray, tmask1 , 127, 225, THRESH_BINARY_INV | THRESH_OTSU);
+
+        morphologyEx(tmask1, tmask1, MORPH_CLOSE, kernel);
+        namedWindow("Kernel Applied", WINDOW_NORMAL);
+		imshow("Kernel Applied", tmask1);
 
 		waitKey(1);
 		//cap.release();
