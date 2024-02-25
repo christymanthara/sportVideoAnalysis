@@ -6,18 +6,22 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include "my_functions.cpp"
 
 using namespace std;
 using namespace cv;
 
 ///Importing video 
 
+
+
+
 int main()
 {
 	
 	string path = "Resources/sport1.mp4";
 	VideoCapture cap(path);
-	Mat img, imgHsv, rangeMask,rangeMask3C, final, finalBgr, finalGray, tmask1;
+	Mat img, imgsaved, imgHsv, rangeMask,rangeMask3C, final, finalBgr, finalGray, tmask1, cfinal;
 	
     //converting the video to image frames and displaying them
 	while(true) {
@@ -26,6 +30,7 @@ int main()
 		cap.read(img); //passing the video to the img variable
 		resize(img, img, Size(img.cols/2, img.rows/2)); // resized the video to smaller resolutions
 		
+        imgsaved = img;
 
         
 		//resizeWindow("image", width, height);  
@@ -72,13 +77,45 @@ int main()
 		imshow("BGR to Gray", finalGray);
 
         // create the kernel for threshholding
-        Mat kernel = getStructuringElement(MORPH_RECT, Size(13,13));
+        Mat kernel = getStructuringElement(MORPH_RECT, Size(9,9));
 
         threshold(finalGray, tmask1 , 127, 225, THRESH_BINARY_INV | THRESH_OTSU);
 
         morphologyEx(tmask1, tmask1, MORPH_CLOSE, kernel);
         namedWindow("Kernel Applied", WINDOW_NORMAL);
 		imshow("Kernel Applied", tmask1);
+
+
+
+
+        // we are going to find the players with contours after we find contour we check only those where the height is greater than the width  
+        // we use the getcontours method written earlier for this purpose
+        
+        // we use the find contours
+
+
+        getContours(tmask1,tmask1);
+
+        namedWindow("Contour Image", WINDOW_NORMAL);
+		imshow("Contour Image", tmask1);
+        
+        Mat mask = tmask1;
+        Mat colormask;
+        //changing the mask to 3 channel
+        cvtColor(tmask1, colormask, COLOR_GRAY2BGR); 
+
+        namedWindow("Colored Mask", WINDOW_NORMAL);
+		imshow("Colored Mask", colormask);
+
+    
+
+        namedWindow("imgsaved", WINDOW_NORMAL);
+		imshow("imgsaved", imgsaved);
+        
+
+        bitwise_and(imgsaved, colormask, cfinal, mask);
+        namedWindow("final out", WINDOW_NORMAL);
+		imshow("final out", cfinal);
 
 		waitKey(1);
 		//cap.release();
